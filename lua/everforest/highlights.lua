@@ -1,5 +1,7 @@
 local highlights = {}
 
+local ColourUtility = require("everforest.colour_utility")
+
 ---@enum Styles
 local styles = {
   bold = "bold",
@@ -12,12 +14,7 @@ local styles = {
   nocombine = "nocombine",
 }
 
----@class Highlight
----@field fg string|nil
----@field bg string|nil
----@field sp string|nil
----@field style string|nil|Highlight
----@field link string|nil
+---@alias Highlight vim.api.keyset.highlight
 
 ---@alias Highlights table<string,Highlight>
 
@@ -103,53 +100,44 @@ highlights.generate_syntax = function(palette, options)
 
   ---@type Highlights
   local syntax = {
-    Normal = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg0)),
-    NormalNC = syntax_entry(
-      palette.fg,
-      transparency_respecting_colour((options.dim_inactive_windows and palette.bg_dim) or palette.bg0)
-    ),
-    Terminal = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg0)),
-    EndOfBuffer = syntax_entry((options.show_eob and palette.bg4) or palette.bg0, palette.none),
-    Folded = syntax_entry(palette.grey1, transparency_respecting_colour(palette.bg1)),
-    SignColumn = syntax_entry(palette.fg, sign_column_respecting_colour(palette.bg1)),
-    FoldColumn = syntax_entry(
-      (options.sign_column_background == "grey" and palette.grey2) or palette.bg5,
-      sign_column_respecting_colour(palette.bg1)
-    ),
-    ToolbarLine = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg2)),
-    IncSearch = syntax_entry(palette.bg0, palette.red),
-    Search = syntax_entry(palette.bg0, palette.green),
     ColorColumn = syntax_entry(palette.none, palette.bg1),
     Conceal = syntax_entry(set_colour_based_on_ui_contrast(palette.bg5, palette.grey0), palette.none),
+    CurSearch = { link = "IncSearch" },
     Cursor = syntax_entry(palette.none, palette.none, { styles.reverse }),
     lCursor = { link = "Cursor" },
     CursorIM = { link = "Cursor" },
-    CursorLine = syntax_entry(palette.none, palette.bg1),
     CursorColumn = syntax_entry(palette.none, palette.bg1),
-    LineNr = syntax_entry(set_colour_based_on_ui_contrast(palette.bg5, palette.grey0), palette.none),
-    CursorLineNr = syntax_entry(
-      set_colour_based_on_ui_contrast(palette.grey1, palette.grey2),
-      sign_column_respecting_colour(palette.bg1)
-    ),
-
+    CursorLine = syntax_entry(palette.none, palette.bg1),
+    Directory = syntax_entry(palette.green, palette.none),
     DiffAdd = syntax_entry(palette.none, palette.bg_green),
     DiffChange = syntax_entry(palette.none, palette.bg_blue),
     DiffDelete = syntax_entry(palette.none, palette.bg_red),
     DiffText = syntax_entry(palette.bg0, palette.blue),
-    Directory = syntax_entry(palette.green, palette.none),
+    EndOfBuffer = syntax_entry((options.show_eob and palette.bg4) or palette.bg0, palette.none),
+    TermCursor = { link = "Cursor" },
+    TermCursorNC = { link = "Cursor" },
     ErrorMsg = syntax_entry(palette.red, palette.none, { styles.bold, styles.underline }),
-    WarningMsg = syntax_entry(palette.yellow, palette.none, { styles.bold }),
+    WinSeparator = { link = "VertSplit" },
+    Folded = syntax_entry(palette.grey1, transparency_respecting_colour(palette.bg1)),
+    FoldColumn = syntax_entry(
+      (options.sign_column_background == "grey" and palette.grey2) or palette.bg5,
+      sign_column_respecting_colour(palette.bg1)
+    ),
+    SignColumn = syntax_entry(palette.fg, sign_column_respecting_colour(palette.bg1)),
+    IncSearch = syntax_entry(palette.bg0, palette.red),
+    Substitute = syntax_entry(palette.bg0, palette.yellow),
+    LineNr = syntax_entry(set_colour_based_on_ui_contrast(palette.bg5, palette.grey0), palette.none),
+    LineNrAbove = syntax_entry(set_colour_based_on_ui_contrast(palette.bg5, palette.grey0), palette.none),
+    LineNrBelow = syntax_entry(set_colour_based_on_ui_contrast(palette.bg5, palette.grey0), palette.none),
+    CursorLineNr = syntax_entry(
+      set_colour_based_on_ui_contrast(palette.grey1, palette.grey2),
+      sign_column_respecting_colour(palette.bg1)
+    ),
+    MatchParen = syntax_entry(palette.none, palette.bg4),
     ModeMsg = syntax_entry(palette.fg, palette.none, { styles.bold }),
     MoreMsg = syntax_entry(palette.yellow, palette.none, { styles.bold }),
-    MatchParen = syntax_entry(palette.none, palette.bg4),
     NonText = syntax_entry(palette.bg4, palette.none),
-    Whitespace = syntax_entry(palette.bg4, palette.none),
-    SpecialKey = syntax_entry(palette.bg3, palette.none),
-    Pmenu = syntax_entry(palette.fg, palette.bg2),
-    PmenuSbar = syntax_entry(palette.none, palette.bg2),
-    PmenuSel = syntax_entry(palette.bg0, palette.statusline1),
-    WildMenu = { link = "PmenuSel" },
-    PmenuThumb = syntax_entry(palette.none, palette.grey0),
+    Normal = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg0)),
     NormalFloat = syntax_entry(palette.fg, (options.float_style == "bright" and palette.bg2) or palette.bg_dim),
     FloatBorder = syntax_entry(palette.grey1, (options.float_style == "bright" and palette.bg2) or palette.bg_dim),
     FloatTitle = syntax_entry(
@@ -157,8 +145,18 @@ highlights.generate_syntax = function(palette, options)
       (options.float_style == "bright" and palette.bg2) or palette.bg_dim,
       { styles.bold }
     ),
+    NormalNC = syntax_entry(
+      palette.fg,
+      transparency_respecting_colour((options.dim_inactive_windows and palette.bg_dim) or palette.bg0)
+    ),
+    Pmenu = syntax_entry(palette.fg, palette.bg2),
+    PmenuSbar = syntax_entry(palette.none, palette.bg2),
+    PmenuSel = syntax_entry(palette.bg0, palette.statusline1),
+    PmenuThumb = syntax_entry(palette.none, palette.grey0),
     Question = syntax_entry(palette.yellow, palette.none),
-
+    QuickFixLine = syntax_entry(palette.purple, palette.none, { styles.bold }),
+    Search = syntax_entry(palette.bg0, palette.green),
+    SpecialKey = syntax_entry(palette.yellow, palette.none),
     SpellBad = syntax_entry(
       options.spell_foreground and palette.red or palette.none,
       palette.none,
@@ -183,19 +181,10 @@ highlights.generate_syntax = function(palette, options)
       { styles.undercurl },
       palette.purple
     ),
-
     StatusLine = syntax_entry(palette.grey1, options.transparent_background_level == 2 and palette.none or palette.bg2),
-    StatusLineTerm = syntax_entry(
-      palette.grey1,
-      options.transparent_background_level == 2 and palette.none or palette.bg1
-    ),
     StatusLineNC = syntax_entry(
       options.transparent_background_level == 2 and palette.grey0 or palette.grey1,
       options.transparent_background_level == 2 and palette.none or palette.bg1
-    ),
-    StatusLineTermNC = syntax_entry(
-      options.transparent_background_level == 2 and palette.grey0 or palette.grey1,
-      options.transparent_background_level == 2 and palette.none or palette.bg0
     ),
     TabLine = syntax_entry(palette.grey2, palette.bg3),
     TabLineFill = syntax_entry(
@@ -203,35 +192,85 @@ highlights.generate_syntax = function(palette, options)
       options.transparent_background_level == 2 and palette.none or palette.bg1
     ),
     TabLineSel = syntax_entry(palette.bg0, palette.statusline1),
-    VertSplit = syntax_entry(palette.bg4, (options.dim_inactive_windows and palette.bg_dim) or palette.none),
-    WinSeparator = { link = "VertSplit" },
-
+    Title = syntax_entry(palette.orange, palette.none, { styles.bold }),
     Visual = syntax_entry(palette.none, palette.bg_visual),
     VisualNOS = syntax_entry(palette.none, palette.bg_visual),
-    QuickFixLine = syntax_entry(palette.purple, palette.none, { styles.bold }),
+    WarningMsg = syntax_entry(palette.yellow, palette.none, { styles.bold }),
+    Whitespace = syntax_entry(palette.bg4, palette.none),
+    WildMenu = { link = "PmenuSel" },
+    WinBar = syntax_entry(
+      palette.grey1,
+      options.transparent_background_level == 2 and palette.none or palette.bg2,
+      { styles.bold }
+    ),
+    WinBarNC = syntax_entry(
+      options.transparent_background_level == 2 and palette.grey0 or palette.grey1,
+      options.transparent_background_level == 2 and palette.none or palette.bg1
+    ),
+    Terminal = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg0)),
+    ToolbarLine = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg2)),
+
+    Added = { link = "Green" },
+    Changed = { link = "Yellow" },
+    Removed = { link = "Red" },
+
+    StatusLineTerm = syntax_entry(
+      palette.grey1,
+      options.transparent_background_level == 2 and palette.none or palette.bg1
+    ),
+    StatusLineTermNC = syntax_entry(
+      options.transparent_background_level == 2 and palette.grey0 or palette.grey1,
+      options.transparent_background_level == 2 and palette.none or palette.bg0
+    ),
+    VertSplit = syntax_entry(palette.bg4, (options.dim_inactive_windows and palette.bg_dim) or palette.none),
+
     Debug = syntax_entry(palette.orange, palette.none),
     debugPC = syntax_entry(palette.bg0, palette.green),
     debugBreakpoint = syntax_entry(palette.bg0, palette.red),
     ToolbarButton = syntax_entry(palette.bg0, palette.green),
-    Substitute = syntax_entry(palette.bg0, palette.yellow),
-    WinBarNC = { link = "Grey" },
     DiagnosticFloatingError = { link = "ErrorFloat" },
     DiagnosticFloatingWarn = { link = "WarningFloat" },
     DiagnosticFloatingInfo = { link = "InfoFloat" },
     DiagnosticFloatingHint = { link = "HintFloat" },
-    DiagnosticError = { link = "ErrorText" },
-    DiagnosticWarn = { link = "WarningText" },
-    DiagnosticInfo = { link = "InfoText" },
-    DiagnosticHint = { link = "HintText" },
-    DiagnosticUnnecessary = { link = "WarningText" },
+    DiagnosticError = syntax_entry(palette.red, options.diagnostic_text_highlight and palette.bg_red or palette.none),
+    DiagnosticWarn = syntax_entry(
+      palette.yellow,
+      options.diagnostic_text_highlight and palette.bg_yellow or palette.none
+    ),
+    DiagnosticInfo = syntax_entry(palette.blue, options.diagnostic_text_highlight and palette.bg_blue or palette.none),
+    DiagnosticHint = syntax_entry(
+      palette.green,
+      options.diagnostic_text_highlight and palette.bg_green or palette.none
+    ),
+    DiagnosticUnnecessary = syntax_entry(palette.grey1, palette.none),
     DiagnosticVirtualTextError = { link = "VirtualTextError" },
     DiagnosticVirtualTextWarn = { link = "VirtualTextWarning" },
     DiagnosticVirtualTextInfo = { link = "VirtualTextInfo" },
     DiagnosticVirtualTextHint = { link = "VirtualTextHint" },
-    DiagnosticUnderlineError = { link = "ErrorText" },
-    DiagnosticUnderlineWarn = { link = "WarningText" },
-    DiagnosticUnderlineInfo = { link = "InfoText" },
-    DiagnosticUnderlineHint = { link = "HintText" },
+    DiagnosticUnderlineError = syntax_entry(
+      palette.red,
+      options.diagnostic_text_highlight and palette.bg_red or palette.none,
+      { styles.undercurl },
+      palette.red
+    ),
+    DiagnosticUnderlineWarn = syntax_entry(
+      palette.yellow,
+      options.diagnostic_text_highlight and palette.bg_yellow or palette.none,
+      { styles.undercurl },
+      palette.yellow
+    ),
+    DiagnosticUnderlineInfo = syntax_entry(
+      palette.blue,
+      options.diagnostic_text_highlight and palette.bg_blue or palette.none,
+      { styles.undercurl },
+      palette.blue
+    ),
+    DiagnosticUnderlineHint = syntax_entry(
+      palette.green,
+      options.diagnostic_text_highlight and palette.bg_green or palette.none,
+      { styles.undercurl },
+      palette.green
+    ),
     DiagnosticSignError = { link = "RedSign" },
     DiagnosticSignWarn = { link = "YellowSign" },
     DiagnosticSignInfo = { link = "BlueSign" },
@@ -258,13 +297,13 @@ highlights.generate_syntax = function(palette, options)
     LspDiagnosticsSignWarning = { link = "DiagnosticSignWarn" },
     LspDiagnosticsSignInformation = { link = "DiagnosticSignInfo" },
     LspDiagnosticsSignHint = { link = "DiagnosticSignHint" },
+    LspInlayHint = { link = "InlayHints" },
     LspReferenceText = { link = "CurrentWord" },
     LspReferenceRead = { link = "CurrentWord" },
     LspReferenceWrite = { link = "CurrentWord" },
     LspCodeLens = { link = "VirtualTextInfo" },
     LspCodeLensSeparator = { link = "VirtualTextHint" },
     LspSignatureActiveParameter = { link = "Search" },
-    TermCursor = { link = "Cursor" },
     healthError = { link = "Red" },
     healthSuccess = { link = "Green" },
     healthWarning = { link = "Yellow" },
@@ -290,7 +329,6 @@ highlights.generate_syntax = function(palette, options)
     Label = syntax_entry(palette.orange, palette.none),
     Structure = syntax_entry(palette.orange, palette.none),
     Operator = syntax_entry(palette.orange, palette.none),
-    Title = syntax_entry(palette.orange, palette.none, { styles.bold }),
     Special = syntax_entry(palette.yellow, palette.none),
     SpecialChar = syntax_entry(palette.yellow, palette.none),
     Type = syntax_entry(palette.yellow, palette.none),
@@ -483,7 +521,7 @@ highlights.generate_syntax = function(palette, options)
     TSTypeBuiltin = { link = "YellowItalic" },
     TSTypeDefinition = { link = "YellowItalic" },
     TSTypeQualifier = { link = "Orange" },
-    TSURI = { link = "markdownUrl" },
+    TSURI = syntax_entry(palette.blue, palette.none, { styles.underline }),
     TSVariable = { link = "Fg" },
     TSVariableBuiltin = { link = "PurpleItalic" },
 
@@ -592,6 +630,7 @@ highlights.generate_syntax = function(palette, options)
     ["@markup.heading.4.marker.markdown"] = { link = "@conceal" },
     ["@markup.heading.5.marker.markdown"] = { link = "@conceal" },
     ["@markup.heading.6.marker.markdown"] = { link = "@conceal" },
+    ["@markup.italic"] = { link = "TSEmphasis" },
     ["@markup.link"] = { link = "TSTextReference" },
     ["@markup.link.label"] = { link = "TSStringSpecial" },
     ["@markup.link.url"] = { link = "TSURI" },
@@ -624,6 +663,7 @@ highlights.generate_syntax = function(palette, options)
     ["@punctuation.bracket.regex"] = { link = "TSStringRegex" },
     ["@punctuation.delimiter"] = { link = "TSPunctDelimiter" },
     ["@punctuation.special"] = { link = "TSPunctSpecial" },
+    ["@punctuation.special.typescript"] = { link = "TSOperator" },
     ["@repeat"] = { link = "TSRepeat" },
     ["@storageclass"] = { link = "TSStorageClass" },
     ["@storageclass.lifetime"] = { link = "TSStorageClassLifetime" },
@@ -742,31 +782,31 @@ highlights.generate_syntax = function(palette, options)
     ["@lsp.typemod.variable.static"] = { link = "Red" },
 
     -- p00f/ts-rainbow
-    rainbowcol1 = syntax_entry(palette.red, palette.none),
-    rainbowcol2 = syntax_entry(palette.orange, palette.none),
-    rainbowcol3 = syntax_entry(palette.yellow, palette.none),
-    rainbowcol4 = syntax_entry(palette.green, palette.none),
-    rainbowcol5 = syntax_entry(palette.aqua, palette.none),
-    rainbowcol6 = syntax_entry(palette.blue, palette.none),
-    rainbowcol7 = syntax_entry(palette.purple, palette.none),
+    rainbowcol1 = { link = "Red" },
+    rainbowcol2 = { link = "Orange" },
+    rainbowcol3 = { link = "Yellow" },
+    rainbowcol4 = { link = "Green" },
+    rainbowcol5 = { link = "Aqua" },
+    rainbowcol6 = { link = "Blue" },
+    rainbowcol7 = { link = "Purple" },
 
     -- HiPhish/nvim-ts-rainbow2
-    TSRainbowRed = { link = "rainbowcol1" },
-    TSRainbowOrange = { link = "rainbowcol2" },
-    TSRainbowYellow = { link = "rainbowcol3" },
-    TSRainbowGreen = { link = "rainbowcol4" },
-    TSRainbowCyan = { link = "rainbowcol5" },
-    TSRainbowBlue = { link = "rainbowcol6" },
-    TSRainbowViolet = { link = "rainbowcol7" },
+    TSRainbowRed = { link = "Red" },
+    TSRainbowOrange = { link = "Orange" },
+    TSRainbowYellow = { link = "Yellow" },
+    TSRainbowGreen = { link = "Green" },
+    TSRainbowCyan = { link = "Aqua" },
+    TSRainbowBlue = { link = "Blue" },
+    TSRainbowViolet = { link = "Purple" },
 
     -- HiPhish/rainbow-delimiters
-    RainbowDelimiterRed = { link = "rainbowcol1" },
-    RainbowDelimiterOrange = { link = "rainbowcol2" },
-    RainbowDelimiterYellow = { link = "rainbowcol3" },
-    RainbowDelimiterGreen = { link = "rainbowcol4" },
-    RainbowDelimiterCyan = { link = "rainbowcol5" },
-    RainbowDelimiterBlue = { link = "rainbowcol6" },
-    RainbowDelimiterViolet = { link = "rainbowcol7" },
+    RainbowDelimiterRed = { link = "Red" },
+    RainbowDelimiterOrange = { link = "Orange" },
+    RainbowDelimiterYellow = { link = "Yellow" },
+    RainbowDelimiterGreen = { link = "Green" },
+    RainbowDelimiterCyan = { link = "Aqua" },
+    RainbowDelimiterBlue = { link = "Blue" },
+    RainbowDelimiterViolet = { link = "Purple" },
 
     -- Diff
     diffAdded = { link = "Green" },
@@ -781,6 +821,8 @@ highlights.generate_syntax = function(palette, options)
     -- machakann/vim-highlightedyank
     HighlightedyankRegion = { link = "Visual" },
 
+    CopilotSuggestion = { link = "Grey" },
+
     -- Coc.nvim
     CocHoverRange = syntax_entry(palette.none, palette.none, { styles.bold, styles.underline }),
     CocSearch = syntax_entry(palette.green, palette.none, { styles.bold }),
@@ -794,7 +836,7 @@ highlights.generate_syntax = function(palette, options)
     CocMenuSel = { link = "PmenuSel" },
     CocDisabled = { link = "Grey" },
     CocSnippetVisual = { link = "DiffAdd" },
-    CocInlayHint = { link = "LineNr" },
+    CocInlayHint = { link = "InlayHints" },
     CocNotificationProgress = { link = "Green" },
     CocNotificationButton = { link = "PmenuSel" },
     CocSemClass = { link = "TSType" },
@@ -844,33 +886,6 @@ highlights.generate_syntax = function(palette, options)
     CocGitTopRemovedSign = { link = "RedSign" },
     CocTreeOpenClose = { link = "Aqua" },
     CocTreeDescription = { link = "Grey" },
-    CocSymbolFile = { link = "Green" },
-    CocSymbolModule = { link = "Purple" },
-    CocSymbolNamespace = { link = "Purple" },
-    CocSymbolPackage = { link = "Purple" },
-    CocSymbolClass = { link = "Red" },
-    CocSymbolMethod = { link = "Green" },
-    CocSymbolProperty = { link = "Blue" },
-    CocSymbolField = { link = "Green" },
-    CocSymbolConstructor = { link = "Green" },
-    CocSymbolEnum = { link = "Yellow" },
-    CocSymbolInterface = { link = "Yellow" },
-    CocSymbolFunction = { link = "Green" },
-    CocSymbolVariable = { link = "Blue" },
-    CocSymbolConstant = { link = "Blue" },
-    CocSymbolString = { link = "Aqua" },
-    CocSymbolNumber = { link = "Aqua" },
-    CocSymbolBoolean = { link = "Aqua" },
-    CocSymbolArray = { link = "Aqua" },
-    CocSymbolObject = { link = "Aqua" },
-    CocSymbolKey = { link = "Red" },
-    CocSymbolNull = { link = "Aqua" },
-    CocSymbolEnumMember = { link = "Aqua" },
-    CocSymbolStruct = { link = "Yellow" },
-    CocSymbolEvent = { link = "Orange" },
-    CocSymbolOperator = { link = "Orange" },
-    CocSymbolTypeParameter = { link = "Yellow" },
-    CocSymbolDefault = { link = "Aqua" },
 
     -- https://github.com/weirongxu/coc-explorer
     CocExplorerBufferRoot = { link = "Orange" },
@@ -913,17 +928,17 @@ highlights.generate_syntax = function(palette, options)
     CocExplorerFileHidden = { link = "Grey" },
 
     -- prabirshrestha/vim-lsp
-    LspErrorVirtual = { link = "VirtualTextError" },
-    LspWarningVirtual = { link = "VirtualTextWarning" },
-    LspInformationVirtual = { link = "VirtualTextInfo" },
-    LspHintVirtual = { link = "VirtualTextHint" },
+    LspErrorVirtualText = { link = "VirtualTextError" },
+    LspWarningVirtualText = { link = "VirtualTextWarning" },
+    LspInformationVirtualText = { link = "VirtualTextInfo" },
+    LspHintVirtualText = { link = "VirtualTextHint" },
     LspErrorHighlight = { link = "ErrorText" },
     LspWarningHighlight = { link = "WarningText" },
     LspInformationHighlight = { link = "InfoText" },
     LspHintHighlight = { link = "HintText" },
     lspReference = { link = "CurrentWord" },
-    lspInlayHintsType = { link = "LineNr" },
-    lspInlayHintsParameter = { link = "LineNr" },
+    lspInlayHintsType = { link = "InlayHints" },
+    lspInlayHintsParameter = { link = "InlayHints" },
     LspSemanticType = { link = "TSType" },
     LspSemanticClass = { link = "TSType" },
     LspSemanticEnum = { link = "TSType" },
@@ -952,7 +967,7 @@ highlights.generate_syntax = function(palette, options)
     YcmWarningLine = { link = "WarningLine" },
     YcmErrorSection = { link = "ErrorText" },
     YcmWarningSection = { link = "WarningText" },
-    YcmInlayHint = { link = "LineNr" },
+    YcmInlayHint = { link = "InlayHints" },
 
     -- dense-analysis/ale
     ALEError = { link = "ErrorText" },
@@ -1167,31 +1182,6 @@ highlights.generate_syntax = function(palette, options)
     CmpItemAbbrDeprecated = { link = "Grey" },
     CmpItemMenu = { link = "Fg" },
     CmpItemKind = { link = "Yellow" },
-    CmpItemKindClass = { link = "Yellow" },
-    CmpItemKindColor = { link = "Aqua" },
-    CmpItemKindConstant = { link = "Blue" },
-    CmpItemKindConstructor = { link = "Green" },
-    CmpItemKindEnum = { link = "Yellow" },
-    CmpItemKindEnumMember = { link = "Purple" },
-    CmpItemKindEvent = { link = "Orange" },
-    CmpItemKindField = { link = "Green" },
-    CmpItemKindFile = { link = "Aqua" },
-    CmpItemKindFolder = { link = "Aqua" },
-    CmpItemKindFunction = { link = "Green" },
-    CmpItemKindInterface = { link = "Yellow" },
-    CmpItemKindKeyword = { link = "Red" },
-    CmpItemKindMethod = { link = "Green" },
-    CmpItemKindModule = { link = "Yellow" },
-    CmpItemKindOperator = { link = "Orange" },
-    CmpItemKindProperty = { link = "Blue" },
-    CmpItemKindReference = { link = "Aqua" },
-    CmpItemKindSnippet = { link = "Aqua" },
-    CmpItemKindStruct = { link = "Yellow" },
-    CmpItemKindText = { link = "Fg" },
-    CmpItemKindTypeParameter = { link = "Yellow" },
-    CmpItemKindUnit = { link = "Purple" },
-    CmpItemKindValue = { link = "Purple" },
-    CmpItemKindVariable = { link = "Blue" },
 
     -- folke/trouble.nvim
     TroubleText = { link = "Fg" },
@@ -1228,8 +1218,7 @@ highlights.generate_syntax = function(palette, options)
 
     -- ggandor/leap.nvim
     LeapMatch = syntax_entry(palette.fg, palette.purple, { styles.bold }),
-    LeapLabelPrimary = syntax_entry(palette.purple, palette.none, { styles.bold }),
-    LeapLabelSecondary = syntax_entry(palette.green, palette.none, { styles.bold }),
+    LeapLabel = syntax_entry(palette.purple, palette.none, { styles.bold }),
     LeapBackdrop = syntax_entry(palette.grey1, palette.none),
 
     -- lukas-reineke/indent-blankline.nvim
@@ -1246,18 +1235,42 @@ highlights.generate_syntax = function(palette, options)
     BufferCurrentMod = syntax_entry(palette.blue, palette.bg0),
     BufferCurrentSign = syntax_entry(palette.statusline1, palette.bg0),
     BufferCurrentTarget = syntax_entry(palette.red, palette.bg0, { styles.bold }),
+    BufferCurrentADDED = syntax_entry(palette.green, palette.bg0),
+    BufferCurrentCHANGED = syntax_entry(palette.blue, palette.bg0),
+    BufferCurrentDELETED = syntax_entry(palette.red, palette.bg0),
+    BufferCurrentERROR = syntax_entry(palette.red, palette.bg0),
+    BufferCurrentHINT = syntax_entry(palette.yellow, palette.bg0),
+    BufferCurrentINFO = syntax_entry(palette.aqua, palette.bg0),
+    BufferCurrentWARN = syntax_entry(palette.orange, palette.bg0),
     BufferVisible = syntax_entry(palette.fg, palette.bg_dim),
     BufferVisibleIndex = syntax_entry(palette.fg, palette.bg_dim),
     BufferVisibleMod = syntax_entry(palette.blue, palette.bg_dim),
     BufferVisibleSign = syntax_entry(palette.statusline1, palette.bg_dim),
     BufferVisibleTarget = syntax_entry(palette.yellow, palette.bg_dim, { styles.bold }),
+    BufferVisibleADDED = syntax_entry(palette.green, palette.bg_dim),
+    BufferVisibleCHANGED = syntax_entry(palette.blue, palette.bg_dim),
+    BufferVisibleDELETED = syntax_entry(palette.red, palette.bg_dim),
+    BufferVisibleERROR = syntax_entry(palette.red, palette.bg_dim),
+    BufferVisibleHINT = syntax_entry(palette.yellow, palette.bg_dim),
+    BufferVisibleINFO = syntax_entry(palette.aqua, palette.bg_dim),
+    BufferVisibleWARN = syntax_entry(palette.orange, palette.bg_dim),
     BufferInactive = syntax_entry(palette.grey1, palette.bg_dim),
     BufferInactiveIndex = syntax_entry(palette.grey1, palette.bg_dim),
     BufferInactiveMod = syntax_entry(palette.grey1, palette.bg_dim),
     BufferInactiveSign = syntax_entry(palette.grey0, palette.bg_dim),
     BufferInactiveTarget = syntax_entry(palette.yellow, palette.bg_dim, { styles.bold }),
+    BufferInactiveADDED = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveCHANGED = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveDELETED = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveERROR = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveHINT = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveINFO = syntax_entry(palette.grey1, palette.bg_dim),
+    BufferInactiveWARN = syntax_entry(palette.grey1, palette.bg_dim),
     BufferTabpages = syntax_entry(palette.grey1, palette.bg_dim, { styles.bold }),
     BufferTabpageFill = syntax_entry(palette.bg_dim, palette.bg_dim),
+
+    BlinkCmpLabelMatch = syntax_entry(palette.green, palette.none, { styles.bold }),
+    BlinkCmpKind = { link = "Yellow" },
 
     -- SmiteshP/nvim-navic
     NavicIconsFile = syntax_entry(palette.fg, palette.none),
@@ -1291,7 +1304,7 @@ highlights.generate_syntax = function(palette, options)
     NavicSeparator = syntax_entry(palette.fg, palette.none),
 
     -- rcarriga/nvim-notify
-    NotifyBackground = syntax_entry(palette.fg, palette.bg0),
+    NotifyBackground = syntax_entry(palette.none, palette.bg0),
     -- Borders
     NotifyDEBUGBorder = { link = "Grey" },
     NotifyERRORBorder = { link = "Red" },
@@ -1316,6 +1329,14 @@ highlights.generate_syntax = function(palette, options)
     -- rcarriga/nvim-dap-ui
     DapUIModifiedValue = syntax_entry(palette.blue, palette.none, { styles.bold }),
     DapUIBreakpointsCurrentLine = syntax_entry(palette.blue, palette.none, { styles.bold }),
+    DapUIPlayPause = syntax_entry(palette.green, palette.bg2),
+    DapUIRestart = syntax_entry(palette.green, palette.bg2),
+    DapUIStop = syntax_entry(palette.red, palette.bg2),
+    DapUIUnavailable = syntax_entry(palette.grey1, palette.bg2),
+    DapUIStepOver = syntax_entry(palette.blue, palette.bg2),
+    DapUIStepInto = syntax_entry(palette.blue, palette.bg2),
+    DapUIStepBack = syntax_entry(palette.blue, palette.bg2),
+    DapUIStepOut = syntax_entry(palette.blue, palette.bg2),
     DapUIScope = { link = "Blue" },
     DapUIType = { link = "Purple" },
     DapUIDecoration = { link = "Blue" },
@@ -1343,11 +1364,34 @@ highlights.generate_syntax = function(palette, options)
     InclineNormalNC = syntax_entry(palette.grey1, palette.bg2),
 
     -- echasnovski/mini.nvim
+    MiniAnimateCursor = syntax_entry(palette.none, palette.none, { styles.reverse, styles.nocombine }),
+    MiniFilesFile = syntax_entry(palette.fg, palette.none),
+    MiniFilesTitleFocused = syntax_entry(
+      palette.green,
+      options.float_style == "dim" and palette.bg_dim or palette.bg2,
+      { styles.bold }
+    ),
+    MiniHipatternsFixme = syntax_entry(palette.bg0, palette.red, { styles.bold }),
+    MiniHipatternsHack = syntax_entry(palette.bg0, palette.yellow, { styles.bold }),
+    MiniHipatternsNote = syntax_entry(palette.bg0, palette.blue, { styles.bold }),
+    MiniHipatternsTodo = syntax_entry(palette.bg0, palette.green, { styles.bold }),
+    MiniIconsAzure = syntax_entry(palette.blue, palette.none),
+    MiniIconsBlue = syntax_entry(palette.blue, palette.none),
+    MiniIconsCyan = syntax_entry(palette.aqua, palette.none),
+    MiniIconsGreen = syntax_entry(palette.green, palette.none),
+    MiniIconsGrey = syntax_entry(palette.grey2, palette.none),
+    MiniIconsOrange = syntax_entry(palette.orange, palette.none),
+    MiniIconsPurple = syntax_entry(palette.purple, palette.none),
+    MiniIconsRed = syntax_entry(palette.red, palette.none),
+    MiniIconsYellow = syntax_entry(palette.yellow, palette.none),
     MiniIndentscopePrefix = syntax_entry(palette.none, palette.none, { styles.nocombine }),
     MiniJump2dSpot = syntax_entry(palette.orange, palette.none, { styles.bold, styles.nocombine }),
+    MiniJump2dSpotAhead = syntax_entry(palette.aqua, palette.none, { styles.nocombine }),
+    MiniJump2dSpotUnique = syntax_entry(palette.yellow, palette.none, { styles.bold, styles.nocombine }),
+    MiniPickPrompt = syntax_entry(palette.blue, options.float_style == "dim" and palette.bg_dim or palette.bg2),
     MiniStarterCurrent = syntax_entry(palette.none, palette.none, { styles.nocombine }),
-    MiniStatuslineDevinfo = syntax_entry(palette.grey1, palette.bg1),
-    MiniStatuslineFileinfo = syntax_entry(palette.grey1, palette.bg1),
+    MiniStatuslineDevinfo = syntax_entry(palette.grey2, palette.bg1),
+    MiniStatuslineFilename = syntax_entry(palette.grey1, palette.bg1),
     MiniStatuslineModeCommand = syntax_entry(palette.bg0, palette.aqua, { styles.bold }),
     MiniStatuslineModeInsert = syntax_entry(palette.bg0, palette.statusline2, { styles.bold }),
     MiniStatuslineModeNormal = syntax_entry(palette.bg0, palette.statusline1, { styles.bold }),
@@ -1365,21 +1409,73 @@ highlights.generate_syntax = function(palette, options)
     MiniTestFail = syntax_entry(palette.red, palette.none, { styles.bold }),
     MiniTestPass = syntax_entry(palette.green, palette.none, { styles.bold }),
     MiniTrailspace = syntax_entry(palette.none, palette.red),
-    MiniStarterItemBullet = { link = "Grey" },
-    MiniStarterItemPrefix = { link = "Yellow" },
-    MiniStarterQuery = { link = "Blue" },
-    MiniStatuslineFilename = { link = "Grey" },
-    MiniStatuslineModeInactive = { link = "Grey" },
+    MiniAnimateNormalFloat = { link = "NormalFloat" },
+    MiniClueBorder = { link = "FloatBorder" },
+    MiniClueDescGroup = { link = "DiagnosticFloatingWarn" },
+    MiniClueDescSingle = { link = "NormalFloat" },
+    MiniClueNextKey = { link = "DiagnosticFloatingHint" },
+    MiniClueNextKeyWithPostkeys = { link = "DiagnosticFloatingError" },
+    MiniClueSeparator = { link = "DiagnosticFloatingInfo" },
+    MiniClueTitle = { link = "FloatTitle" },
     MiniCompletionActiveParameter = { link = "LspSignatureActiveParameter" },
     MiniCursorword = { link = "CurrentWord" },
     MiniCursorwordCurrent = { link = "CurrentWord" },
+    MiniDepsChangeAdded = { link = "diffAdded" },
+    MiniDepsChangeRemoved = { link = "diffRemoved" },
+    MiniDepsHints = { link = "DiagnosticHint" },
+    MiniDepsInfo = { link = "DiagnosticInfo" },
+    MiniDepsMsgBreaking = { link = "DiagnosticWarn" },
+    MiniDepsPlaceholder = { link = "Comment" },
+    MiniDepsTitle = { link = "Title" },
+    MiniDepsTitleError = { link = "DiffDelete" },
+    MiniDepsTitleSame = { link = "DiffChange" },
+    MiniDepsTitleUpdate = { link = "DiffAdd" },
+    MiniDiffOverAdd = { link = "DiffAdd" },
+    MiniDiffOverChange = { link = "DiffText" },
+    MiniDiffOverContext = { link = "DiffChange" },
+    MiniDiffOverDelete = { link = "DiffDelete" },
+    MiniDiffSignAdd = { link = "GreenSign" },
+    MiniDiffSignChange = { link = "BlueSign" },
+    MiniDiffSignDelete = { link = "RedSign" },
+    MiniFilesBorder = { link = "FloatBorder" },
+    MiniFilesBorderModified = { link = "DiagnosticFloatingWarn" },
+    MiniFilesCursorLine = { link = "CursorLine" },
+    MiniFilesDirectory = { link = "Directory" },
+    MiniFilesNormal = { link = "NormalFloat" },
+    MiniFilesTitle = { link = "FloatTitle" },
     MiniIndentscopeSymbol = { link = "Grey" },
     MiniJump = { link = "Search" },
+    MiniJump2dDim = { link = "Comment" },
+    MiniMapNormal = { link = "NormalFloat" },
+    MiniMapSymbolCount = { link = "Special" },
+    MiniMapSymbolLine = { link = "Title" },
+    MiniMapSymbolView = { link = "Delimiter" },
+    MiniNotifyBorder = { link = "FloatBorder" },
+    MiniNotifyNormal = { link = "NormalFloat" },
+    MiniNotifyTitle = { link = "FloatTitle" },
+    MiniOperatorsExchangeFrom = { link = "IncSearch" },
+    MiniPickBorder = { link = "FloatBorder" },
+    MiniPickBorderBusy = { link = "DiagnosticFloatingWarn" },
+    MiniPickBorderText = { link = "FloatTitle" },
+    MiniPickHeader = { link = "DiagnosticFloatingHint" },
+    MiniPickIconDirectory = { link = "Directory" },
+    MiniPickIconFile = { link = "MiniPickNormal" },
+    MiniPickMatchCurrent = { link = "CursorLine" },
+    MiniPickMatchMarked = { link = "Visual" },
+    MiniPickMatchRanges = { link = "DiagnosticFloatingHint" },
+    MiniPickNormal = { link = "NormalFloat" },
+    MiniPickPreviewLine = { link = "CursorLine" },
+    MiniPickPreviewRegion = { link = "IncSearch" },
     MiniStarterFooter = { link = "Orange" },
     MiniStarterHeader = { link = "Yellow" },
     MiniStarterInactive = { link = "Comment" },
     MiniStarterItem = { link = "Normal" },
+    MiniStarterItemBullet = { link = "Grey" },
+    MiniStarterItemPrefix = { link = "Yellow" },
+    MiniStarterQuery = { link = "Blue" },
     MiniStarterSection = { link = "Title" },
+    MiniStatuslineFileinfo = { link = "MiniStatuslineDevinfo" },
+    MiniStatuslineInactive = { link = "Grey" },
     MiniSurround = { link = "IncSearch" },
     MiniTablineFill = { link = "TabLineFill" },
 
@@ -1453,36 +1549,6 @@ highlights.generate_syntax = function(palette, options)
 
     -- https://github.com/simrat39/symbols-outline.nvim
     FocusedSymbol = { link = "NormalFloat" },
-
-    -- https://github.com/stevearc/aerial.nvim
-    AerialLine = { link = "CursorLine" },
-    AerialGuide = { link = "LineNr" },
-    AerialFileIcon = { link = "Green" },
-    AerialModuleIcon = { link = "Purple" },
-    AerialNamespaceIcon = { link = "Purple" },
-    AerialPackageIcon = { link = "Purple" },
-    AerialClassIcon = { link = "Red" },
-    AerialMethodIcon = { link = "Green" },
-    AerialPropertyIcon = { link = "Blue" },
-    AerialFieldIcon = { link = "Green" },
-    AerialConstructorIcon = { link = "Green" },
-    AerialEnumIcon = { link = "Yellow" },
-    AerialInterfaceIcon = { link = "Yellow" },
-    AerialFunctionIcon = { link = "Green" },
-    AerialVariableIcon = { link = "Blue" },
-    AerialConstantIcon = { link = "Blue" },
-    AerialStringIcon = { link = "Aqua" },
-    AerialNumberIcon = { link = "Aqua" },
-    AerialBooleanIcon = { link = "Aqua" },
-    AerialArrayIcon = { link = "Aqua" },
-    AerialObjectIcon = { link = "Aqua" },
-    AerialKeyIcon = { link = "Red" },
-    AerialNullIcon = { link = "Aqua" },
-    AerialEnumMemberIcon = { link = "Aqua" },
-    AerialStructIcon = { link = "Yellow" },
-    AerialEventIcon = { link = "Orange" },
-    AerialOperatorIcon = { link = "Orange" },
-    AerialTypeParameterIcon = { link = "Yellow" },
 
     -- https://github.com/preservim/nerdtree
     NERDTreeDir = { link = "Green" },
@@ -1667,21 +1733,21 @@ highlights.generate_syntax = function(palette, options)
     DashboardFooter = { link = "Orange" },
 
     -- nvim-neotest/neotest
-    NeotestPassed = syntax_entry(palette.green, palette.none),
-    NeotestRunning = syntax_entry(palette.yellow, palette.none),
-    NeotestFailed = syntax_entry(palette.red, palette.none),
-    NeotestSkipped = syntax_entry(palette.blue, palette.none),
-    NeotestNamespace = syntax_entry(palette.bg_green, palette.none),
+    NeotestPassed = { link = "GreenSign" },
+    NeotestRunning = { link = "YellowSign" },
+    NeotestFailed = { link = "RedSign" },
+    NeotestSkipped = { link = "BlueSign" },
+    NeotestNamespace = { link = "Purple" },
     NeotestFocused = syntax_entry(palette.yellow, palette.none),
-    NeotestFile = syntax_entry(palette.aqua, palette.none),
-    NeotestDir = syntax_entry(palette.blue, palette.none),
+    NeotestFile = { link = "Aqua" },
+    NeotestDir = { link = "Directory" },
     NeotestBorder = syntax_entry(palette.blue, palette.none),
-    NeotestIndent = syntax_entry(palette.grey1, palette.none),
-    NeotestExpandMarker = syntax_entry(palette.grey1, palette.none),
-    NeotestAdapterName = syntax_entry(palette.purple, palette.none, { styles.bold }),
+    NeotestIndent = { link = "NonText" },
+    NeotestExpandMarker = syntax_entry(palette.bg5, palette.none),
+    NeotestAdapterName = { link = "Title" },
     NeotestWinSelect = syntax_entry(palette.blue, palette.none),
-    NeotestMarked = syntax_entry(palette.blue, palette.none),
-    NeotestTarget = syntax_entry(palette.blue, palette.none),
+    NeotestMarked = { link = "Orange" },
+    NeotestTarget = { link = "Red" },
 
     -- lambdalisue/glyph-palette.vim
     GlyphPalette1 = syntax_entry(palette.red, palette.none),
@@ -1738,6 +1804,18 @@ highlights.generate_syntax = function(palette, options)
     NoiceCompletionItemKindOperator = syntax_entry(palette.green, palette.none),
     NoiceCompletionItemKindSnippet = syntax_entry(palette.grey1, palette.none),
 
+    -- williamboman/mason.nvim
+    MasonHeader = syntax_entry(palette.bg0, palette.green, { styles.bold }),
+    MasonHeaderSecondary = syntax_entry(palette.bg0, palette.orange, { styles.bold }),
+    MasonHighlight = { link = "Green" },
+    MasonHighlightSecondary = { link = "Yellow" },
+    MasonHighlightBlock = syntax_entry(palette.bg0, palette.aqua),
+    MasonHighlightBlockBold = syntax_entry(palette.bg0, palette.aqua, { styles.bold }),
+    MasonHighlightBlockSecondary = syntax_entry(palette.bg0, palette.yellow),
+    MasonHighlightBlockBoldSecondary = syntax_entry(palette.bg0, palette.yellow, { styles.bold }),
+    MasonMuted = syntax_entry(palette.grey0, palette.none),
+    MasonMutedBlock = syntax_entry(palette.bg0, palette.grey0),
+
     -- nullchilly/fsread.nvim
     FSPrefix = syntax_entry(palette.fg, transparency_respecting_colour(palette.bg0), { styles.bold }),
     FSSuffix = syntax_entry(palette.grey1, palette.none),
@@ -1750,7 +1828,7 @@ highlights.generate_syntax = function(palette, options)
     markdownH4 = syntax_entry(palette.green, palette.none, { styles.bold }),
     markdownH5 = syntax_entry(palette.blue, palette.none, { styles.bold }),
     markdownH6 = syntax_entry(palette.purple, palette.none, { styles.bold }),
-    markdownUrl = syntax_entry(palette.blue, palette.none, { styles.underline }),
+    markdownUrl = { link = "TSURI" },
     markdownItalic = syntax_entry(palette.none, palette.none, { styles.italic }),
     markdownBold = syntax_entry(palette.none, palette.none, { styles.bold }),
     markdownItalicDelimiter = syntax_entry(palette.grey1, palette.none, { styles.italic }),
@@ -2003,7 +2081,7 @@ highlights.generate_syntax = function(palette, options)
     shVarAssign = { link = "Orange" },
     shCmdSubRegion = { link = "Green" },
     shCommandSub = { link = "Orange" },
-    shFunctionOne = { link = "Green" },
+    shFunction = { link = "Green" },
     shFunctionKey = { link = "RedItalic" },
 
     -- ZSH
@@ -2059,6 +2137,61 @@ highlights.generate_syntax = function(palette, options)
     syntax["NeoTreeVertSplit"] = syntax_entry(palette.bg0, palette.bg0)
   end
 
+  if vim.o.background == "light" then
+    syntax["NeoTreeCursorLine"] = syntax_entry(palette.none, palette.bg0)
+  end
+
+  if options.inlay_hints_background == "none" then
+    syntax["InlayHints"] = { link = "LineNr" }
+  elseif options.inlay_hints_background == "dimmed" then
+    syntax["InlayHints"] = syntax_entry(palette.grey1, palette.bg_dim)
+  end
+
+  local lsp_kind_colours = {
+    Array = "Aqua",
+    Boolean = "Aqua",
+    Class = "Yellow",
+    Color = "Aqua",
+    Constant = "Blue",
+    Constructor = "Green",
+    Default = "Aqua",
+    Enum = "Yellow",
+    EnumMember = "Purple",
+    Event = "Orange",
+    Field = "Green",
+    File = "Green",
+    Folder = "Aqua",
+    Function = "Green",
+    Interface = "Yellow",
+    Key = "Red",
+    Keyword = "Red",
+    Method = "Green",
+    Module = "Yellow",
+    Namespace = "Purple",
+    Null = "Aqua",
+    Number = "Aqua",
+    Object = "Aqua",
+    Operator = "Orange",
+    Package = "Purple",
+    Property = "Blue",
+    Reference = "Aqua",
+    Snippet = "Aqua",
+    String = "Aqua",
+    Struct = "Yellow",
+    Text = "Fg",
+    TypeParameter = "Yellow",
+    Unit = "Purple",
+    Value = "Purple",
+    Variable = "Blue",
+  }
+
+  for kind, colour in pairs(lsp_kind_colours) do
+    syntax["CmpItemKind" .. kind] = { link = colour }
+    syntax["CocSymbol" .. kind] = { link = colour }
+    syntax["Aerial" .. kind .. "Icon"] = { link = colour }
+    syntax["BlinkCmpKind" .. kind] = { link = colour }
+  end
+
   -- Terminal colours
   local terminal = {
     red = palette.red,
@@ -2079,20 +2212,27 @@ highlights.generate_syntax = function(palette, options)
 
   -- Consider adding configuration options for this
   vim.g.terminal_color_0 = terminal.black
-  vim.g.terminal_color_1 = terminal.red
-  vim.g.terminal_color_2 = terminal.green
-  vim.g.terminal_color_3 = terminal.yellow
-  vim.g.terminal_color_4 = terminal.blue
-  vim.g.terminal_color_5 = terminal.purple
-  vim.g.terminal_color_6 = terminal.cyan
-  vim.g.terminal_color_7 = terminal.white
   vim.g.terminal_color_8 = terminal.black
-  vim.g.terminal_color_9 = terminal.red
-  vim.g.terminal_color_10 = terminal.green
-  vim.g.terminal_color_11 = terminal.yellow
-  vim.g.terminal_color_12 = terminal.blue
-  vim.g.terminal_color_13 = terminal.purple
-  vim.g.terminal_color_14 = terminal.cyan
+
+  vim.g.terminal_color_1 = terminal.red
+  vim.g.terminal_color_9 = ColourUtility.blend_fg(terminal.red, 0.5)
+
+  vim.g.terminal_color_2 = terminal.green
+  vim.g.terminal_color_10 = ColourUtility.blend_fg(terminal.green, 0.5)
+
+  vim.g.terminal_color_3 = terminal.yellow
+  vim.g.terminal_color_11 = ColourUtility.blend_fg(terminal.yellow, 0.5)
+
+  vim.g.terminal_color_4 = terminal.blue
+  vim.g.terminal_color_12 = ColourUtility.blend_fg(terminal.blue, 0.5)
+
+  vim.g.terminal_color_5 = terminal.purple
+  vim.g.terminal_color_13 = ColourUtility.blend_fg(terminal.purple, 0.5)
+
+  vim.g.terminal_color_6 = terminal.cyan
+  vim.g.terminal_color_14 = ColourUtility.blend_fg(terminal.cyan, 0.5)
+
+  vim.g.terminal_color_7 = terminal.white
   vim.g.terminal_color_15 = terminal.white
 
   -- junegunn/fzf.vim
